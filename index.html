@@ -1,15 +1,215 @@
-<!DOCTYPE html>
+<!doctype html>
 <html>
   <head>
-    <meta charset="utf-8">
     <link rel="stylesheet" type="text/css" href="https://cdn.mxpnl.com/libs/mixpanel-platform/css/reset.css">
     <link rel="stylesheet" type="text/css" href="https://cdn.mxpnl.com/libs/mixpanel-platform/build/mixpanel-platform.v0.latest.min.css">
     <script src="https://cdn.mxpnl.com/libs/mixpanel-platform/build/mixpanel-platform.v0.latest.min.js"></script>
   </head>
   <body class="mixpanel-platform-body">
-    <h1>Hello, World!</h1>
+    <div class="mixpanel-platform-section">
+      <div id="dateSelect" style="float: right;"></div>
+      <div style="clear: both;"></div>
+      <div id="graph"></div>
+    </div>
+    <div id="table"></div>
+
+   <script>
+    // Setting up shop
+    // MP.api.setCredentials('e150cd7c918304fbd385c065c032bf9f', 'f021f05b6c50323941ebfb736ca0c91c');
+
+    </script>
+
+
     <script>
-      // Run queries and display results here
+    var dateSelect  = $('#dateSelect').MPDatepicker();
+    
+     var runQuery = function() {
+        /*  First Chart */
+      
+        var date_from;
+        var date_to;
+        var dateRange = dateSelect.MPDatepicker('value');
+        
+        if(typeof dateRange == "undefined") {
+          var date_from = moment().subtract(1, 'month');
+          var date_to = moment();
+        } else {
+          var date_from = dateRange.from.toISOString().substring(0, 10);
+          var date_to = dateRange.to.toISOString().substring(0, 10);
+        }
+        
+        var offset = dateRange.to.getDay();
+        var monday = new Date(dateRange.to.setDate(dateRange.to.getDate() - offset + 1));
+        var lastmonday = new Date(dateRange.to.setDate(dateRange.to.getDate() - 7));
+        var sunday = new Date(dateRange.to.setDate(dateRange.to.getDate() + 6));
+        console.log(monday);
+        console.log(lastmonday);
+        console.log(sunday);
+
+        var sixth_chart = MP.api.segment('Fax Sent', 'User ID', {
+            from: monday,
+            to: date_to,
+            unit: 'day',
+            limit: 10,
+            'where': '(string(properties["Stroll Employee"]) == "No")',
+        });
+     
+        var seventh_chart = MP.api.segment('Fax Sent', 'User ID', {
+            from: lastmonday,
+            to: sunday,
+            unit: 'day',
+            limit: 10,
+            'where': '(string(properties["Stroll Employee"]) == "No")',
+        });
+      
+        var first_chart = MP.api.segment('Fax Initiated', 'User ID', {
+            from: monday,
+            to: date_to,
+            unit: 'day',
+            limit: 10,
+            'where': '(string(properties["Stroll Employee"]) == "No")',
+        });
+     
+        var second_chart = MP.api.segment('Fax Initiated', 'User ID', {
+            from: lastmonday,
+            to: sunday,
+            unit: 'day',
+            limit: 10,
+            'where': '(string(properties["Stroll Employee"]) == "No")',
+        });
+       
+       
+        var third_chart = MP.api.segment('Welcome Screen', 'User ID', {
+            from: monday,
+            to: date_to,
+            unit: 'day', 
+            limit: 10,
+            'where': '(string(properties["Stroll Employee"]) == "No")',
+        });
+        
+        var fourth_chart = MP.api.segment('Welcome Screen', 'User ID', {
+            from: lastmonday,
+            to: sunday,
+            unit: 'month',
+            limit:10, 
+            'where': '(string(properties["Stroll Employee"]) == "No")',
+
+        });
+
+         var ninth_chart = MP.api.segment('Fax Initiated', 'Type', {
+            from: monday,
+            to: date_to,
+            unit: 'day', 
+            limit:10, 
+            'where': '(string(properties["Stroll Employee"]) == "No")',
+
+        });
+
+
+        var fifth_chart = MP.api.segment('Patient Sign In Screen', 'Patient Type', {
+            from: date_from,
+            to: date_to,
+            unit: 'month',
+            limit:10, 
+            'where': '(string(properties["Stroll Employee"]) == "No")',
+
+        });
+
+        var eighth_chart = MP.api.segment('Procedure Screen', 'Procedure', {
+            from: date_from,
+            to: date_to,
+            unit: 'month',
+            limit:10, 
+            'where': '(string(properties["Stroll Employee"]) == "No") and defined (properties["Procedure"])',
+        });
+        
+        $.when(sixth_chart, seventh_chart, first_chart, second_chart, third_chart, fourth_chart, ninth_chart, fifth_chart, eighth_chart).done(function(sixth_chart, seventh_chart, first_chart, second_chart, third_chart, fourth_chart, ninth_chart, fifth_chart, eighth_chart) {
+            
+           
+            
+            var drawGraph = function(sixthChartData, seventhChartData, firstChartData, secondChartData, thirdChartData, fourthChartData, ninthChartData, fifthChartData, eighthChartData){
+
+                $('<div class="first"></div>').css({'width':'460px', 'float':'left'}).appendTo('body').MPChart({
+                    chartType: 'line',
+                    data: sixthChartData,
+                    highchartsOptions : {title: {text:"Fax Sent by User ID (This Week)"}}
+                });
+                
+                $('<div class="second"></div>').css({'width':'460px', 'float':'right'}).appendTo('body').MPChart({
+                    chartType: 'line',
+                    data: seventhChartData,
+                      highchartsOptions : {title: {text:"Fax Sent by User ID (Last Week)"}}
+                });
+          
+
+                $('<div class="first"></div>').css({'width':'460px', 'float':'left'}).appendTo('body').MPChart({
+                    chartType: 'line',
+                    data: firstChartData,
+                    highchartsOptions : {title: {text:"Fax Initiatied by User ID (This Week)"}}
+                });
+                
+                $('<div class="second"></div>').css({'width':'460px', 'float':'right'}).appendTo('body').MPChart({
+                    chartType: 'line',
+                    data: secondChartData,
+                      highchartsOptions : {title: {text:"Fax Initiatied by User ID (Last Week)"}}
+                });
+                
+                $('<div class="third"></div>').css({'width':'460px', 'float':'left'}).appendTo('body').MPChart({
+                    chartType: 'line',
+                    data: thirdChartData,
+                    highchartsOptions : {title: {text:"Welcome Screen by User ID (This Week)"}}
+                });
+                
+                $('<div class="fourth"></div>').css({'width':'460px', 'float':'right'}).appendTo('body').MPChart({
+                    chartType: 'line',
+                    data: fourthChartData,
+                    highchartsOptions : {title: {text:"Welcome Screen by User ID (Last Week)"}}
+                });
+
+                  $('<div class="fourth"></div>').css({'width':'460px', 'float':'right'}).appendTo('body').MPChart({
+                    chartType: 'line',
+                    data: ninthChartData,
+                    highchartsOptions : {title: {text:"Fax Initiated by Fax Type (Last Week)"}}
+                });
+
+                $('<div class="fourth"></div>').css({'width':'460px', 'float':'right'}).appendTo('body').MPChart({
+                    chartType: 'pie',
+                    data: fifthChartData,
+                    highchartsOptions : {title: {text:"Patient Sign In by Patient Type (Monthly)"}}
+                });
+
+                $('<div class="fourth"></div>').css({'width':'700px', 'float':'right'}).appendTo('body').MPChart({
+                    chartType: 'pie',
+                    data: eighthChartData,
+                    highchartsOptions : {title: {text:"Procedure Screen by Procedure (Monthly)"}}
+                });
+                //$('.mixpanel-platform-multi_selector').css({'clear':'both'});
+                //$('.title').css({'width':'55px'});
+                $('.color_toggle_dropdown').each(function(){this.style.setProperty('width', '170px', 'important')});
+                $('.title').each(function(){this.style.setProperty('width', '105px', 'important')});
+                
+                //$(".first").show();
+                //$(".second").show();
+                //$(".third").show();
+                //$(".fourth").show();
+                
+            }
+            
+            
+            drawGraph(sixth_chart.values(), seventh_chart.values(), first_chart.values(), second_chart.values(), third_chart.values(), fourth_chart.values(), ninth_chart.values(), fifth_chart.values(), eighth_chart.values());
+            
+        });
+      };
+      
+      dateSelect.on('change', function(dateRange){
+        $(".first").empty();
+        $(".second").empty();
+        $(".third").empty();
+        $(".fourth").empty();
+        runQuery();
+      });
+      
+      runQuery();
     </script>
   </body>
 </html>
